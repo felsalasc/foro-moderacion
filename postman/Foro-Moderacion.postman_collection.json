@@ -1,0 +1,724 @@
+{
+  "info": {
+    "name": "Foro Moderacion - Sumativa 2",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Completar credenciales en variables privadas de Postman. Servicios reales activos; ejecutar en orden. No exportar secretos o tokens."
+  },
+  "variable": [
+    {
+      "key": "usuarios_url",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "contenido_url",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "moderacion_url",
+      "value": "http://localhost:8083",
+      "type": "string"
+    },
+    {
+      "key": "admin_correo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuario_correo",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuario_password",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "usuario_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoria_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tema_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "comentario_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "01 Login administrador",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{usuarios_url}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"correo\": \"{{admin_correo}}\", \"password\": \"{{admin_password}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+              "if (pm.response.code < 300) pm.collectionVariables.set(\"admin_token\", pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "02 Registrar autor de prueba",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{usuarios_url}}/api/auth/registro",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombre\": \"Autor Postman\", \"correo\": \"{{usuario_correo}}\", \"password\": \"{{usuario_password}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([201, 409]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "03 Login autor",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{usuarios_url}}/api/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"correo\": \"{{usuario_correo}}\", \"password\": \"{{usuario_password}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+              "if (pm.response.code < 300) pm.collectionVariables.set(\"usuario_token\", pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "04 Crear categoria",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{contenido_url}}/api/categorias",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"nombre\": \"Moderacion {{$timestamp}}\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+              "if (pm.response.code < 300) pm.collectionVariables.set(\"categoria_id\", pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "05 Publicar tema",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"titulo\":\"Prueba de moderación\",\"contenido\":\"Contenido que debe conservarse\",\"categoriaId\":{{categoria_id}}}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+              "if (pm.response.code < 300) pm.collectionVariables.set(\"tema_id\", pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "06 Publicar comentario",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas/{{tema_id}}/comentarios",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contenido\": \"Comentario que debe conservarse\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([201]));",
+              "if (pm.response.code < 300) pm.collectionVariables.set(\"comentario_id\", pm.response.json().id);"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "07 Usuario no puede banear",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/temas/{{tema_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"baneado\": true, \"motivo\": \"Intento no autorizado\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "08 Banear comentario",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/comentarios/{{comentario_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"baneado\": true, \"motivo\": \"Comentario que incumple normas\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "09 Comentario oculto por ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{contenido_url}}/api/comentarios/{{comentario_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([404]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "10 Banear tema",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/temas/{{tema_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"baneado\": true, \"motivo\": \"Publicación que incumple normas\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "11 Tema oculto por ID",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas/{{tema_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([404]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "12 Tema ausente del listado",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+              "pm.test(\"Tema baneado ausente\", () => pm.expect(pm.response.json().some(t => String(t.id) === String(pm.collectionVariables.get(\"tema_id\")))).to.eql(false));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "13 No comentar tema baneado",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas/{{tema_id}}/comentarios",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"contenido\": \"Intento bloqueado\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([404]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "14 Decisiones administrativas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/decisiones?baneado=true"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "15 Restaurar tema",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/temas/{{tema_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"baneado\": false, \"motivo\": \"Revisión de tema aceptada\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "16 Tema visible nuevamente",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas/{{tema_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+              "pm.test(\"Texto conservado\", () => pm.expect(pm.response.json().contenido).to.eql(\"Contenido que debe conservarse\"));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "17 Comentario sigue baneado",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{contenido_url}}/api/temas/{{tema_id}}/comentarios"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+              "pm.test(\"Comentario baneado ausente\", () => pm.expect(pm.response.json()).to.eql([]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "18 Restaurar comentario",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{admin_token}}"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/comentarios/{{comentario_id}}",
+        "body": {
+          "mode": "raw",
+          "raw": "{\"baneado\": false, \"motivo\": \"Revisión de comentario aceptada\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "19 Comentario conservado y visible",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{contenido_url}}/api/comentarios/{{comentario_id}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([200]));",
+              "pm.test(\"Texto conservado\", () => pm.expect(pm.response.json().contenido).to.eql(\"Comentario que debe conservarse\"));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    },
+    {
+      "name": "20 Usuario no consulta decisiones",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer {{usuario_token}}"
+          }
+        ],
+        "url": "{{moderacion_url}}/api/moderacion/decisiones"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"Estado esperado\", () => pm.expect(pm.response.code).to.be.oneOf([403]));"
+            ]
+          }
+        }
+      ],
+      "response": []
+    }
+  ]
+}
